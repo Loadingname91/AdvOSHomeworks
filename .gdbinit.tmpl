@@ -1,0 +1,19 @@
+# qemu-system-x86_64 and gdb combination does not support setting
+# the target architecture dynamically, so we force it to this
+# see:
+# https://gitlab.com/qemu-project/qemu/-/issues/141
+# https://sourceware.org/bugzilla/show_bug.cgi?id=22869
+set architecture i386:x86-64
+
+define hook-stop
+  if $cs == 8 || $cs == 35
+    x/i $pc
+  else
+    # Translate the segment:offset into a physical address
+    printf "[%4x:%4x] ", $cs, $rip
+    x/i $cs*16+$rip
+  end
+end
+
+echo + symbol-file kernel\n
+symbol-file kernel
